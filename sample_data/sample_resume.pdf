@@ -1,0 +1,32 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [4 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 5 0 R >>
+endobj
+5 0 obj
+<< /Length 1443 >>
+stream
+BT /F1 11 Tf 14 TL 72 720 Td (Priya Sharma) Tj T* (Bengaluru, India | priya.sharma@example.com | +91 98765 43210) Tj T* () Tj T* (SUMMARY) Tj T* (AI Engineer with 3 years of experience building GenAI products and RAG systems.) Tj T* () Tj T* (EXPERIENCE) Tj T* (Current role: AI Engineer at Nimbus Software) Tj T* (- Built an enterprise RAG chatbot using Python, FastAPI, LangChain and GCP Vertex AI) Tj T* (- Designed retrieval pipelines with FAISS and PostgreSQL pgvector) Tj T* (- Deployed containerized services with Docker and Cloud Run) Tj T* (- Collaborated across teams with strong communication and mentoring) Tj T* () Tj T* (Previous role: Software Engineer at Infoedge Solutions) Tj T* (- Developed REST APIs in Python and SQL databases) Tj T* (- Wrote unit tests and practiced Agile development) Tj T* () Tj T* (EDUCATION) Tj T* (B.Tech Computer Science, VTU, 2021) Tj T* () Tj T* (SKILLS) Tj T* (Python, FastAPI, Flask, LangChain, RAG, LLM, GCP, Vertex AI, Docker, SQL,) Tj T* (PostgreSQL, FAISS, Git, REST API, communication, teamwork, problem-solving) Tj T* () Tj T* (PROJECTS) Tj T* (Enterprise RAG System: Retrieval augmented generation chatbot for support teams.) Tj T* (Technologies: Python, Vertex AI, FAISS, FastAPI, Docker) Tj T* (Data Pipeline Dashboard: ETL dashboard for sales analytics.) Tj T* (Technologies: Python, Pandas, PostgreSQL) Tj T* () Tj T* (CERTIFICATIONS) Tj T* (Google Cloud Associate Engineer) Tj T* ET
+endstream
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000185 00000 n 
+0000000311 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+1806
+%%EOF
