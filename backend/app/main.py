@@ -12,6 +12,7 @@ from app.api.routes import analysis, applications, documents, jobs
 from app.config import get_settings
 from app.database.database import get_database
 from app.services.langsmith_setup import configure_langsmith
+from app.services.phoenix_setup import configure_phoenix
 
 
 def create_app() -> FastAPI:
@@ -20,6 +21,7 @@ def create_app() -> FastAPI:
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         configure_langsmith(settings)
+        configure_phoenix(settings)
         get_database()
         yield
 

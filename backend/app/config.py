@@ -92,6 +92,12 @@ class Settings(BaseSettings):
     langsmith_project: str = "job-switch-agent"
     langsmith_endpoint: str = "https://api.smith.langchain.com"
 
+    # --- Arize Phoenix tracing (optional, local) ---
+    # https://docs.arize.com/phoenix — run locally: docker run -p 6006:6006 arizephoenix/phoenix
+    phoenix_tracing: bool = False
+    phoenix_endpoint: str = "http://localhost:6006/v1/traces"
+    phoenix_project: str = "job-switch-agent"
+
     # --- Uploads / API ---
     max_upload_bytes: int = 10 * 1024 * 1024  # 10 MB
     allowed_upload_types: tuple[str, ...] = ("application/pdf", "text/plain")

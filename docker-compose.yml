@@ -28,6 +28,9 @@ services:
       LANGCHAIN_PROJECT: ${LANGCHAIN_PROJECT:-${LANGSMITH_PROJECT:-job-switch-agent}}
       LANGSMITH_PROJECT: ${LANGSMITH_PROJECT:-job-switch-agent}
       LANGSMITH_ENDPOINT: ${LANGSMITH_ENDPOINT:-https://api.smith.langchain.com}
+      PHOENIX_TRACING: ${PHOENIX_TRACING:-false}
+      PHOENIX_ENDPOINT: ${PHOENIX_ENDPOINT:-http://phoenix:6006/v1/traces}
+      PHOENIX_PROJECT: ${PHOENIX_PROJECT:-job-switch-agent}
     volumes:
       - backend_data:/app/data
 
@@ -53,6 +56,15 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     profiles: ["with-postgres"]
+
+  phoenix:
+    image: arizephoenix/phoenix:latest
+    ports:
+      - "6006:6006"
+      - "4317:4317"
+    environment:
+      PHOENIX_PROJECT_NAME: job-switch-agent
+    profiles: ["with-phoenix"]
 
 volumes:
   backend_data:
