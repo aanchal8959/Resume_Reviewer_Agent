@@ -13,9 +13,11 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body className="min-h-screen antialiased">
+      <body className="flex h-screen h-[100dvh] flex-col overflow-hidden antialiased">
         <Nav />
-        {children}
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden">
+          {children}
+        </div>
       </body>
     </html>
   );

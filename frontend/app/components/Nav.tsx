@@ -13,8 +13,8 @@ const LINKS = [
 export default function Nav() {
   const pathname = usePathname();
   return (
-    <nav className="border-b border-slate-200 bg-white">
-      <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-3">
+    <nav className="flex h-14 shrink-0 items-center border-b border-slate-200 bg-white">
+      <div className="mx-auto flex h-full w-full max-w-7xl items-center justify-between px-4">
         <Link href="/" className="text-sm font-extrabold tracking-tight text-indigo-700">
           Job Switch Agent
         </Link>

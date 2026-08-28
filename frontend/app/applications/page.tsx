@@ -69,7 +69,7 @@ export default function ApplicationsPage() {
 
   if (applications === null && !error) {
     return (
-      <main className="flex min-h-screen items-center justify-center">
+      <main className="flex min-h-[60vh] items-center justify-center">
         <p className="animate-pulse text-sm font-medium text-slate-500">Loading applications…</p>
       </main>
     );
