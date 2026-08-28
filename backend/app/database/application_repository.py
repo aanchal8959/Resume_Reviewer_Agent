@@ -36,8 +36,10 @@ class ApplicationRepository:
         self._db = db
 
     # -- applications ----------------------------------------------------------
-    def create_application(self, job_id: str, resume_session_id: str) -> ApplicationRow:
-        row = ApplicationRow(job_id=job_id, resume_session_id=resume_session_id)
+    def create_application(
+        self, job_id: str, resume_session_id: str, user_id: str | None = None
+    ) -> ApplicationRow:
+        row = ApplicationRow(job_id=job_id, resume_session_id=resume_session_id, user_id=user_id)
         self._db.add(row)
         self._db.flush()
         self.add_event(row.id, ApplicationEventType.CREATED,

@@ -26,8 +26,10 @@ class JobRepository:
         self._db = db
 
     # -- search sessions -----------------------------------------------------
-    def create_search_session(self, source_session_id: str, query: dict) -> JobSearchSession:
-        row = JobSearchSession(source_session_id=source_session_id, query_json=query)
+    def create_search_session(
+        self, source_session_id: str, query: dict, user_id: str | None = None
+    ) -> JobSearchSession:
+        row = JobSearchSession(source_session_id=source_session_id, query_json=query, user_id=user_id)
         self._db.add(row)
         self._db.flush()
         return row

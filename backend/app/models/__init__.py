@@ -1,5 +1,7 @@
 """ORM models. Import all model modules so create_all sees every table."""
 
+from app.models.user import User  # noqa: F401
+
 from app.models.analysis import (  # noqa: F401
     AnalysisResultRow,
     AnalysisSession,
@@ -26,6 +28,7 @@ from app.models.applications import (  # noqa: F401
 
 __all__ = [
     "Base",
+    "User",
     "Document",
     "AnalysisSession",
     "AnalysisResultRow",

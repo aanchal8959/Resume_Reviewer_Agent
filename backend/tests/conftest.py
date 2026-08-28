@@ -11,6 +11,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 os.environ.setdefault("GEMINI_API_KEY", "test-key-for-suite")
+os.environ.setdefault("SECRET_KEY", "test-secret-key-do-not-use-in-prod")
 # Force hermetic provider for tests regardless of local backend/.env
 os.environ["LLM_PROVIDER"] = "gemini"
 # Disable tracing in tests — never emit hermetic runs.

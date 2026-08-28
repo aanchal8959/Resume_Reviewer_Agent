@@ -17,8 +17,8 @@ class SessionRepository:
         self._db = db
 
     # -- sessions -----------------------------------------------------------
-    def create_session(self) -> AnalysisSession:
-        session = AnalysisSession()
+    def create_session(self, user_id: str | None = None) -> AnalysisSession:
+        session = AnalysisSession(user_id=user_id)
         self._db.add(session)
         self._db.flush()
         return session

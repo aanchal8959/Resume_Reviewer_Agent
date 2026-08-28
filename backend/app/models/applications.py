@@ -20,6 +20,7 @@ class ApplicationRow(Base):
     __tablename__ = "applications"
 
     id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_uuid)
+    user_id: Mapped[str | None] = mapped_column(String(32), ForeignKey("users.id"), nullable=True, index=True)
     job_id: Mapped[str] = mapped_column(String(32), ForeignKey("jobs.id"), index=True)
     resume_session_id: Mapped[str] = mapped_column(String(32), index=True)
 

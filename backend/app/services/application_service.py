@@ -60,8 +60,9 @@ class ApplicationService:
     """High-level API used by routes and the copilot LangGraph pipeline."""
 
     # ------------------------------------------------------------- create/read
-    def create_application(self, job_id: str,
-                           resume_session_id: str | None = None) -> str:
+    def create_application(
+        self, job_id: str, resume_session_id: str | None = None, user_id: str | None = None
+    ) -> str:
         database = get_database()
         with database.session() as db:
             try:
@@ -70,7 +71,7 @@ class ApplicationService:
                 raise ApplicationNotFoundError(f"Job '{job_id}' not found") from exc
             session_id = self._resolve_resume_session(db, resume_session_id)
             repo = ApplicationRepository(db)
-            application = repo.create_application(job_id, session_id)
+            application = repo.create_application(job_id, session_id, user_id=user_id)
             repo.ensure_checklist(application.id)
             return application.id
 

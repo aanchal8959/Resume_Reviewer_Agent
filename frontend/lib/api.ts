@@ -1,3 +1,5 @@
+import { getAuthHeaders } from "./auth";
+
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -133,7 +135,14 @@ export interface UploadResponse {
 // API calls
 // ---------------------------------------------------------------------------
 
+function authFetch(url: string, init?: RequestInit): Promise<Response> {
+  const headers = { ...(init?.headers as Record<string, string> | undefined), ...getAuthHeaders() } as Record<string, string>;
+  return fetch(url, { ...init, headers });
+}
+
 async function handleErrors(response: Response): Promise<Response> {
+  if (response.status === 401 && typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
+  }
   if (!response.ok) {
     let detail = `${response.status} ${response.statusText}`;
     try {
@@ -155,7 +164,7 @@ export async function uploadDocuments(
   form.append("resume", resume);
   form.append("job_description", jobDescription);
   const response = await handleErrors(
-    await fetch(`${API_BASE_URL}/api/documents/upload`, {
+    await authFetch(`${API_BASE_URL}/api/documents/upload`, {
       method: "POST",
       body: form,
     })
@@ -165,7 +174,7 @@ export async function uploadDocuments(
 
 export async function startAnalysis(sessionId: string): Promise<{ status: string; message?: string }> {
   const response = await handleErrors(
-    await fetch(`${API_BASE_URL}/api/analysis/${sessionId}/start`, {
+    await authFetch(`${API_BASE_URL}/api/analysis/${sessionId}/start`, {
       method: "POST",
     })
   );
@@ -174,7 +183,7 @@ export async function startAnalysis(sessionId: string): Promise<{ status: string
 
 export async function getAnalysis(sessionId: string): Promise<AnalysisResult> {
   const response = await handleErrors(
-    await fetch(`${API_BASE_URL}/api/analysis/${sessionId}`)
+    await authFetch(`${API_BASE_URL}/api/analysis/${sessionId}`)
   );
   return (await response.json()) as AnalysisResult;
 }
@@ -310,7 +319,7 @@ export async function searchJobs(
   prefs: JobSearchPreferences & { session_id: string }
 ): Promise<JobSearchResponse> {
   const response = await handleErrors(
-    await fetch(`${API_BASE_URL}/api/jobs/search`, {
+    await authFetch(`${API_BASE_URL}/api/jobs/search`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(prefs),
@@ -325,14 +334,14 @@ export async function getRecommendations(
 ): Promise<RankedRecommendations> {
   const params = minMatch != null ? `?min_match=${minMatch}` : "";
   const response = await handleErrors(
-    await fetch(`${API_BASE_URL}/api/jobs/recommendations/${searchId}${params}`)
+    await authFetch(`${API_BASE_URL}/api/jobs/recommendations/${searchId}${params}`)
   );
   return (await response.json()) as RankedRecommendations;
 }
 
 export async function getJob(jobId: string): Promise<JobDetailResponse> {
   const response = await handleErrors(
-    await fetch(`${API_BASE_URL}/api/jobs/${jobId}`)
+    await authFetch(`${API_BASE_URL}/api/jobs/${jobId}`)
   );
   return (await response.json()) as JobDetailResponse;
 }
@@ -342,7 +351,7 @@ export async function analyzeJob(
   resumeSessionId: string
 ): Promise<{ session_id: string; status: string; message?: string | null }> {
   const response = await handleErrors(
-    await fetch(`${API_BASE_URL}/api/jobs/${jobId}/analyze`, {
+    await authFetch(`${API_BASE_URL}/api/jobs/${jobId}/analyze`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ resume_session_id: resumeSessionId }),
@@ -483,7 +492,7 @@ export async function createApplication(
   resumeSessionId?: string
 ): Promise<{ application_id: string }> {
   const response = await handleErrors(
-    await fetch(`${API_BASE_URL}/api/applications`, {
+    await authFetch(`${API_BASE_URL}/api/applications`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -504,14 +513,14 @@ export async function listApplications(filters?: {
   if (filters?.role) params.set("role", filters.role);
   const qs = params.toString();
   const response = await handleErrors(
-    await fetch(`${API_BASE_URL}/api/applications${qs ? `?${qs}` : ""}`)
+    await authFetch(`${API_BASE_URL}/api/applications${qs ? `?${qs}` : ""}`)
   );
   return (await response.json()) as { total: number; applications: ApplicationOut[] };
 }
 
 export async function getApplication(applicationId: string): Promise<ApplicationDetail> {
   const response = await handleErrors(
-    await fetch(`${API_BASE_URL}/api/applications/${applicationId}`)
+    await authFetch(`${API_BASE_URL}/api/applications/${applicationId}`)
   );
   return (await response.json()) as ApplicationDetail;
 }
@@ -522,7 +531,7 @@ export async function updateApplicationStatus(
   notes?: string
 ): Promise<ApplicationDetail> {
   const response = await handleErrors(
-    await fetch(`${API_BASE_URL}/api/applications/${applicationId}/status`, {
+    await authFetch(`${API_BASE_URL}/api/applications/${applicationId}/status`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status: newStatus, notes }),
@@ -536,7 +545,7 @@ export async function updateApplicationNotes(
   notes: string
 ): Promise<ApplicationDetail> {
   const response = await handleErrors(
-    await fetch(`${API_BASE_URL}/api/applications/${applicationId}/notes`, {
+    await authFetch(`${API_BASE_URL}/api/applications/${applicationId}/notes`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ notes }),
@@ -547,7 +556,7 @@ export async function updateApplicationNotes(
 
 export async function prepareApplication(applicationId: string): Promise<ApplicationDetail> {
   const response = await handleErrors(
-    await fetch(`${API_BASE_URL}/api/applications/${applicationId}/prepare`, {
+    await authFetch(`${API_BASE_URL}/api/applications/${applicationId}/prepare`, {
       method: "POST",
     })
   );
@@ -556,7 +565,7 @@ export async function prepareApplication(applicationId: string): Promise<Applica
 
 export async function tailorResume(applicationId: string, regenerate = false): Promise<ApplicationDetail> {
   const response = await handleErrors(
-    await fetch(`${API_BASE_URL}/api/applications/${applicationId}/resume/tailor`, {
+    await authFetch(`${API_BASE_URL}/api/applications/${applicationId}/resume/tailor`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ regenerate }),
@@ -567,7 +576,7 @@ export async function tailorResume(applicationId: string, regenerate = false): P
 
 export async function approveResume(applicationId: string): Promise<ApplicationDetail> {
   const response = await handleErrors(
-    await fetch(`${API_BASE_URL}/api/applications/${applicationId}/resume/approve`, {
+    await authFetch(`${API_BASE_URL}/api/applications/${applicationId}/resume/approve`, {
       method: "POST",
     })
   );
@@ -576,7 +585,7 @@ export async function approveResume(applicationId: string): Promise<ApplicationD
 
 export async function generateCoverLetter(applicationId: string, regenerate = false): Promise<ApplicationDetail> {
   const response = await handleErrors(
-    await fetch(`${API_BASE_URL}/api/applications/${applicationId}/cover-letter`, {
+    await authFetch(`${API_BASE_URL}/api/applications/${applicationId}/cover-letter`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ regenerate }),
@@ -587,7 +596,7 @@ export async function generateCoverLetter(applicationId: string, regenerate = fa
 
 export async function editCoverLetter(applicationId: string, contentText: string): Promise<ApplicationDetail> {
   const response = await handleErrors(
-    await fetch(`${API_BASE_URL}/api/applications/${applicationId}/cover-letter`, {
+    await authFetch(`${API_BASE_URL}/api/applications/${applicationId}/cover-letter`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ content_text: contentText }),
@@ -598,7 +607,7 @@ export async function editCoverLetter(applicationId: string, contentText: string
 
 export async function approveCoverLetter(applicationId: string): Promise<ApplicationDetail> {
   const response = await handleErrors(
-    await fetch(`${API_BASE_URL}/api/applications/${applicationId}/cover-letter/approve`, {
+    await authFetch(`${API_BASE_URL}/api/applications/${applicationId}/cover-letter/approve`, {
       method: "POST",
     })
   );
@@ -607,7 +616,7 @@ export async function approveCoverLetter(applicationId: string): Promise<Applica
 
 export async function researchCompany(applicationId: string): Promise<ApplicationDetail> {
   const response = await handleErrors(
-    await fetch(`${API_BASE_URL}/api/applications/${applicationId}/company/research`, {
+    await authFetch(`${API_BASE_URL}/api/applications/${applicationId}/company/research`, {
       method: "POST",
     })
   );
@@ -616,7 +625,7 @@ export async function researchCompany(applicationId: string): Promise<Applicatio
 
 export async function generateQuestions(applicationId: string): Promise<ApplicationDetail> {
   const response = await handleErrors(
-    await fetch(`${API_BASE_URL}/api/applications/${applicationId}/questions`, {
+    await authFetch(`${API_BASE_URL}/api/applications/${applicationId}/questions`, {
       method: "POST",
     })
   );
@@ -627,7 +636,7 @@ export async function toggleChecklistItem(
   applicationId: string, key: string, done: boolean
 ): Promise<{ checklist: ChecklistItem[] }> {
   const response = await handleErrors(
-    await fetch(
+    await authFetch(
       `${API_BASE_URL}/api/applications/${applicationId}/checklist/${key}?done=${done}`,
       { method: "PATCH" }
     )
@@ -641,11 +650,41 @@ export function exportUrl(applicationId: string, kind: "resume" | "cover-letter"
 
 export async function getAnalytics(): Promise<ApplicationAnalyticsPayload> {
   const response = await handleErrors(
-    await fetch(`${API_BASE_URL}/api/applications/analytics`)
+    await authFetch(`${API_BASE_URL}/api/applications/analytics`)
   );
   return (await response.json()) as ApplicationAnalyticsPayload;
 }
 
+
+export async function signup(email: string, password: string): Promise<{ id: string; email: string }> {
+  const response = await handleErrors(
+    await fetch(`${API_BASE_URL}/api/auth/signup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    })
+  );
+  return (await response.json()) as { id: string; email: string };
+}
+
+export async function login(email: string, password: string): Promise<{ access_token: string; token_type: string }> {
+  const form = new URLSearchParams();
+  form.set("username", email);
+  form.set("password", password);
+  const response = await handleErrors(
+    await fetch(`${API_BASE_URL}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: form.toString(),
+    })
+  );
+  return (await response.json()) as { access_token: string; token_type: string };
+}
+
+export async function getMe(): Promise<{ id: string; email: string }> {
+  const response = await handleErrors(await authFetch(`${API_BASE_URL}/api/auth/me`));
+  return (await response.json()) as { id: string; email: string };
+}
 
 // ---------------------------------------------------------------------------
 // Phase 4: provider aggregation types & calls
@@ -687,7 +726,7 @@ export interface ProviderHealth {
 
 export async function getProviderHealth(): Promise<{ providers: ProviderHealth[] }> {
   const response = await handleErrors(
-    await fetch(`${API_BASE_URL}/api/jobs/providers`)
+    await authFetch(`${API_BASE_URL}/api/jobs/providers`)
   );
   return (await response.json()) as { providers: ProviderHealth[] };
 }

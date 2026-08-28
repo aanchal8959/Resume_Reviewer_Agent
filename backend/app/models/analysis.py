@@ -43,6 +43,7 @@ class AnalysisSession(Base):
     __tablename__ = "sessions"
 
     id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_uuid)
+    user_id: Mapped[str | None] = mapped_column(String(32), ForeignKey("users.id"), nullable=True, index=True)
     status: Mapped[str] = mapped_column(String(32), default="pending", index=True)
     # pending | processing | completed | failed
     error: Mapped[str | None] = mapped_column(Text, nullable=True)

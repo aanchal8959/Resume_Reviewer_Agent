@@ -31,6 +31,9 @@ services:
       PHOENIX_TRACING: ${PHOENIX_TRACING:-false}
       PHOENIX_ENDPOINT: ${PHOENIX_ENDPOINT:-http://phoenix:6006/v1/traces}
       PHOENIX_PROJECT: ${PHOENIX_PROJECT:-job-switch-agent}
+      SECRET_KEY: ${SECRET_KEY:-change-me-in-prod-use-env-SECRET_KEY}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
     volumes:
       - backend_data:/app/data
 

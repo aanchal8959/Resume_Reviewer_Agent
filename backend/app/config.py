@@ -98,6 +98,11 @@ class Settings(BaseSettings):
     phoenix_endpoint: str = "http://localhost:6006/v1/traces"
     phoenix_project: str = "job-switch-agent"
 
+    # --- Auth / JWT (basic) ---
+    secret_key: str = "change-me-in-prod-use-env-SECRET_KEY"
+    jwt_algorithm: str = "HS256"
+    access_token_expire_minutes: int = 30
+
     # --- Uploads / API ---
     max_upload_bytes: int = 10 * 1024 * 1024  # 10 MB
     allowed_upload_types: tuple[str, ...] = ("application/pdf", "text/plain")
