@@ -11,6 +11,9 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 os.environ.setdefault("GEMINI_API_KEY", "test-key-for-suite")
+# Disable LangSmith tracing in tests — never emit hermetic runs.
+os.environ["LANGSMITH_TRACING"] = "false"
+os.environ["LANGCHAIN_TRACING_V2"] = "false"
 # Tests must be hermetic: never call real job providers or company research.
 from app.services.job_sources import manager as _manager_module  # noqa: E402
 from tests.fakes import FakeSourceAdapter, build_fake_jobs  # noqa: E402

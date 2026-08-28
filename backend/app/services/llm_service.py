@@ -18,6 +18,21 @@ from pydantic import BaseModel, ValidationError
 from app.config import get_settings
 from app.schemas.jobs import ProviderStatus
 
+# Optional LangSmith decorator — no-op if langsmith not installed or tracing off.
+try:
+    from langsmith import traceable as _traceable  # type: ignore
+
+    def _maybe_traceable(*args, **kwargs):  # type: ignore
+        return _traceable(*args, **kwargs)
+
+except Exception:  # pragma: no cover - missing optional dep
+
+    def _maybe_traceable(*_args, **_kwargs):  # type: ignore
+        def _decorator(fn):  # type: ignore
+            return fn
+
+        return _decorator
+
 T = TypeVar("T", bound=BaseModel)
 
 
@@ -81,6 +96,7 @@ class GeminiProvider(LLMProvider):
         self._timeout_seconds = timeout_seconds
         self._transport = transport
 
+    @_maybe_traceable(name="gemini.generate_structured", run_type="llm")
     def generate_structured(
         self,
         system_prompt: str,
@@ -114,6 +130,7 @@ class GeminiProvider(LLMProvider):
         )
 
     # -- internals ---------------------------------------------------------------
+    @_maybe_traceable(name="gemini._invoke", run_type="llm")
     def _invoke(self, system_prompt: str, prompt: str) -> str:
         try:
             with httpx.Client(timeout=self._timeout_seconds,

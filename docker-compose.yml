@@ -15,6 +15,12 @@ services:
       MODEL_NAME: ${MODEL_NAME:-gemini-2.0-flash}
       DATABASE_URL: sqlite:///./job_switch_agent.db
       CORS_ORIGINS: http://localhost:3000
+      LANGSMITH_TRACING: ${LANGSMITH_TRACING:-false}
+      LANGCHAIN_TRACING_V2: ${LANGCHAIN_TRACING_V2:-${LANGSMITH_TRACING:-false}}
+      LANGCHAIN_API_KEY: ${LANGCHAIN_API_KEY:-}
+      LANGCHAIN_PROJECT: ${LANGCHAIN_PROJECT:-${LANGSMITH_PROJECT:-job-switch-agent}}
+      LANGSMITH_PROJECT: ${LANGSMITH_PROJECT:-job-switch-agent}
+      LANGSMITH_ENDPOINT: ${LANGSMITH_ENDPOINT:-https://api.smith.langchain.com}
     volumes:
       - backend_data:/app/data
 

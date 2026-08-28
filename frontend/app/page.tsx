@@ -45,10 +45,10 @@ export default function HomePage() {
           Multi-agent AI pipeline · LangGraph powered
         </div>
         <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
-          Job Switch Agent
+          Resume Reviewer  Agent
         </h1>
         <p className="mt-3 text-lg text-slate-500">
-          Your AI career team for a smarter job switch.
+          Your AI career team for a smarter Resume Reviewer.
         </p>
       </div>
 

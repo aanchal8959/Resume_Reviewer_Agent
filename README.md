@@ -209,6 +209,8 @@ httpx, pytest.
 deterministic mock provider. Ollama can be added as another provider without
 touching the agents.
 
+**Observability:** LangSmith (`langsmith>=0.2`) tracing for all 3 LangGraph pipelines (`phase1-analysis`, `phase2-job-discovery`, `phase3-copilot`) + Gemini calls (`gemini.generate_structured` / `gemini._invoke`). Opt-in via `LANGSMITH_TRACING=true` + `LANGCHAIN_API_KEY`; off by default, never in tests.
+
 ## 7. Local Setup
 
 ```bash
@@ -245,8 +247,24 @@ Optional: regenerate the sample documents with
 | `RANKING_TOP_N` | `20` | Max recommendations returned |
 | `SKILL_CANONICAL_MAP_JSON` | — | Optional extra skill synonym overrides |
 | `COMPANY_SOURCE` | `mock` | Phase 3 company research source (`mock` = 12 labelled demo profiles) |
+| `LANGSMITH_TRACING` | `false` | LangSmith tracing on/off (`true` to enable) |
+| `LANGCHAIN_API_KEY` | — | LangSmith API key (`lsv2_pt_...` from smith.langchain.com) |
+| `LANGSMITH_PROJECT` | `job-switch-agent` | LangSmith project name for traces |
+| `LANGSMITH_ENDPOINT` | `https://api.smith.langchain.com` | LangSmith API endpoint |
+| `LANGCHAIN_TRACING_V2` | — | Alias for `LANGSMITH_TRACING` (compat) |
 
 No secrets are hard-coded anywhere; the key is read from the environment only.
+
+**LangSmith (optional):** to see every LangGraph run + Gemini call at https://smith.langchain.com:
+```bash
+# backend/.env
+LANGSMITH_TRACING=true
+LANGCHAIN_API_KEY=lsv2_pt_your_key
+LANGSMITH_PROJECT=job-switch-agent
+# restart: uvicorn app.main:app --reload
+# traces: phase1-analysis, phase2-job-discovery, phase3-copilot + gemini.generate_structured
+# tests stay offline: LANGSMITH_TRACING=false forced in tests/conftest.py
+```
 
 ## 9. Run the Backend
 

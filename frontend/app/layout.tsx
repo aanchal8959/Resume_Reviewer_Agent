@@ -4,7 +4,7 @@ import Nav from "./components/Nav";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Job Switch Agent",
+  title: "Resume Reviewer",
   description: "Your AI career team for a smarter job switch.",
 };
 

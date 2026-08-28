@@ -74,6 +74,15 @@ class Settings(BaseSettings):
         }
     )
 
+    # --- LangSmith tracing (optional) ---
+    # https://smith.langchain.com — set LANGSMITH_TRACING=true + LANGCHAIN_API_KEY to enable.
+    # LANGCHAIN_* aliases are supported for backwards compat.
+    langsmith_tracing: bool = False
+    langsmith_api_key: str | None = None
+    langchain_api_key: str | None = None  # alias for LANGCHAIN_API_KEY
+    langsmith_project: str = "job-switch-agent"
+    langsmith_endpoint: str = "https://api.smith.langchain.com"
+
     # --- Uploads / API ---
     max_upload_bytes: int = 10 * 1024 * 1024  # 10 MB
     allowed_upload_types: tuple[str, ...] = ("application/pdf", "text/plain")

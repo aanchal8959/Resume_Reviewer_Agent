@@ -101,15 +101,22 @@ class ApplicationCopilotPipeline:
             return {"errors": [f"Failed to assemble result: {exc}"]}
 
     def run(self, application_id: str) -> tuple[ApplicationDetail | None, list[str]]:
-        final: CopilotState = self._graph.invoke({
-            "application_id": application_id,
-            "tailored": False,
-            "researched": False,
-            "cover_letter_ready": False,
-            "questions_ready": False,
-            "detail": None,
-            "errors": [],
-        })
+        final: CopilotState = self._graph.invoke(
+            {
+                "application_id": application_id,
+                "tailored": False,
+                "researched": False,
+                "cover_letter_ready": False,
+                "questions_ready": False,
+                "detail": None,
+                "errors": [],
+            },
+            config={
+                "metadata": {"application_id": application_id},
+                "run_name": "phase3-copilot",
+                "tags": ["phase3", "copilot"],
+            },
+        )
         detail = None
         if final.get("detail"):
             detail = ApplicationDetail.model_validate(final["detail"])
