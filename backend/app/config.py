@@ -19,10 +19,19 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    # --- LLM (Gemini) ---
+    # --- LLM provider selection (independent backends) ---
+    llm_provider: str = "gemini"  # gemini | openrouter
+    # Gemini (independent)
     gemini_api_key: str | None = None
     model_name: str = "gemini-3-flash-preview"
     llm_timeout_seconds: float = 60.0
+    # OpenRouter (independent — OpenAI-compatible)
+    openrouter_api_key: str | None = None
+    openrouter_model: str = "openai/gpt-4o-mini"
+    openrouter_base_url: str = "https://openrouter.ai/api/v1"
+    openrouter_site_url: str | None = None  # optional HTTP-Referer
+    openrouter_app_name: str | None = None  # optional X-Title
+    openrouter_timeout_seconds: float = 60.0
 
     # --- Database (SQLite default; Postgres-ready) ---
     database_url: str = "sqlite:///./job_switch_agent.db"

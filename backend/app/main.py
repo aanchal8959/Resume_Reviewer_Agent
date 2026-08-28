@@ -47,10 +47,15 @@ def create_app() -> FastAPI:
 
     @application.get("/health", tags=["health"])
     def health() -> dict:
+        provider = str(getattr(settings, "llm_provider", "gemini") or "gemini").lower()
+        if provider == "openrouter":
+            model = settings.openrouter_model
+        else:
+            model = settings.model_name
         return {
             "status": "ok",
-            "llm_provider": "gemini",
-            "model": settings.model_name,
+            "llm_provider": provider,
+            "model": model,
         }
 
     return application
