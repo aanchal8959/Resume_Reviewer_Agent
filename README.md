@@ -205,11 +205,11 @@ httpx, pytest.
 
 **Frontend:** Next.js 15 (App Router), TypeScript, Tailwind CSS v4.
 
-**LLM:** Gemini REST-style SDK client behind a `LLMProvider` abstraction, plus a
-deterministic mock provider. Ollama can be added as another provider without
-touching the agents.
+**LLM:** Multi-provider `LLMProvider` abstraction — `gemini` (Google `x-goog-api-key` REST) + `openrouter` (OpenAI-compatible `https://openrouter.ai/api/v1`, default `openai/gpt-4o-mini` selectable via env) + deterministic mock. Switch via `LLM_PROVIDER`.
 
-**Observability:** LangSmith (`langsmith>=0.2`) tracing for all 3 LangGraph pipelines (`phase1-analysis`, `phase2-job-discovery`, `phase3-copilot`) + Gemini calls (`gemini.generate_structured` / `gemini._invoke`). Opt-in via `LANGSMITH_TRACING=true` + `LANGCHAIN_API_KEY`; off by default, never in tests.
+**Auth:** Basic JWT (`PyJWT` HS256 30m, `passlib[bcrypt 4.0.1]`), `OAuth2PasswordBearer`, `User` model with nullable `user_id` on sessions/searches/applications (localStorage Bearer, optional so legacy flows still work).
+
+**Observability:** LangSmith (`langsmith>=0.2`) for all 3 LangGraph pipelines + Gemini/OpenRouter calls + local Arize Phoenix (`arize-phoenix-otel` OTEL `http://localhost:6006/v1/traces`, `PHOENIX_TRACING=true`, optional `docker --profile with-phoenix`). Both opt-in, off in tests.
 
 ## 7. Local Setup
 
@@ -233,9 +233,17 @@ Optional: regenerate the sample documents with
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `GEMINI_API_KEY` | — | **Required.** Free key: aistudio.google.com/api-key |
-| `MODEL_NAME` | `gemini-3-flash-preview` | Gemini model name |
-| `LLM_TIMEOUT_SECONDS` | `60` | Per-request timeout |
+| `LLM_PROVIDER` | `gemini` | `gemini` or `openrouter` (independent) |
+| `GEMINI_API_KEY` | — | When `gemini`: aistudio.google.com/api-key |
+| `MODEL_NAME` | `gemini-3-flash-preview` | Gemini model |
+| `LLM_TIMEOUT_SECONDS` | `60` | Gemini timeout |
+| `OPENROUTER_API_KEY` | — | When `openrouter`: app.openrouter.ai/keys |
+| `OPENROUTER_MODEL` | `openai/gpt-4o-mini` | Any OpenRouter model (e.g. `anthropic/claude-3.5-sonnet`) |
+| `OPENROUTER_BASE_URL` | `https://openrouter.ai/api/v1` | OpenRouter base URL |
+| `OPENROUTER_TIMEOUT_SECONDS` | `60` | OpenRouter timeout |
+| `SECRET_KEY` | `change-me...` | JWT HS256 secret (`python -c "import secrets; print(secrets.token_hex(32))"`) |
+| `JWT_ALGORITHM` | `HS256` | JWT algorithm |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | `30` | JWT expiry (basic, no refresh) |
 | `DATABASE_URL` | `sqlite:///./job_switch_agent.db` | SQLite now, Postgres-ready |
 | `ROADMAP_DAYS` | `30` | Plan length |
 | `DAILY_STUDY_HOURS` | `2` | Daily workload cap |
@@ -247,11 +255,13 @@ Optional: regenerate the sample documents with
 | `RANKING_TOP_N` | `20` | Max recommendations returned |
 | `SKILL_CANONICAL_MAP_JSON` | — | Optional extra skill synonym overrides |
 | `COMPANY_SOURCE` | `mock` | Phase 3 company research source (`mock` = 12 labelled demo profiles) |
-| `LANGSMITH_TRACING` | `false` | LangSmith tracing on/off (`true` to enable) |
-| `LANGCHAIN_API_KEY` | — | LangSmith API key (`lsv2_pt_...` from smith.langchain.com) |
-| `LANGSMITH_PROJECT` | `job-switch-agent` | LangSmith project name for traces |
-| `LANGSMITH_ENDPOINT` | `https://api.smith.langchain.com` | LangSmith API endpoint |
-| `LANGCHAIN_TRACING_V2` | — | Alias for `LANGSMITH_TRACING` (compat) |
+| `LANGSMITH_TRACING` | `false` | LangSmith on/off |
+| `LANGCHAIN_API_KEY` | — | LangSmith API key (`lsv2_pt_...`) |
+| `LANGSMITH_PROJECT` | `job-switch-agent` | LangSmith project |
+| `LANGSMITH_ENDPOINT` | `https://api.smith.langchain.com` | LangSmith endpoint |
+| `PHOENIX_TRACING` | `false` | Phoenix local OTEL on/off (`http://localhost:6006/v1/traces`) |
+| `PHOENIX_ENDPOINT` | `http://localhost:6006/v1/traces` | Phoenix collector |
+| `PHOENIX_PROJECT` | `job-switch-agent` | Phoenix project |
 
 No secrets are hard-coded anywhere; the key is read from the environment only.
 
@@ -295,10 +305,13 @@ Production check: `npm run build && npm start`.
 | Method | Path | Description |
 |---|---|---|
 | `GET` | `/health` | Service + provider status |
-| `POST` | `/api/documents/upload` | Multipart upload of `resume` + `job_description` (PDF/TXT). Returns `{session_id, resume_document_id, job_description_document_id}` |
-| `POST` | `/api/analysis/{session_id}/start` | Runs the full LangGraph workflow synchronously |
-| `GET` | `/api/analysis/{session_id}` | Returns status plus candidate/job profiles, skill gap, match score, roadmap |
-| `GET` | `/api/documents/{session_id}` | Lists uploaded documents for a session |
+| `POST` | `/api/auth/signup` | `{email, password>=8}` → `201 {id, email}` |
+| `POST` | `/api/auth/login` | OAuth2 form `username=email&password` → `{access_token, token_type}` (Bearer 30m) |
+| `GET` | `/api/auth/me` | Bearer → `{id, email}` |
+| `POST` | `/api/documents/upload` | Multipart `resume`+`job_description` (PDF/TXT) → `{session_id, ...}` (stores `user_id` if Bearer) |
+| `POST` | `/api/analysis/{session_id}/start` | Run LangGraph (enforces owner if `user_id` set) |
+| `GET` | `/api/analysis/{session_id}` | Status + profiles/skill_gap/match_score/roadmap |
+| `GET` | `/api/documents/{session_id}` | List documents for session |
 | `POST` | `/api/jobs/search` | Phase 2: `{session_id, keywords[], locations[], remote, work_modes[], experience_min/max, min_match_percent}` → runs the discovery graph, returns `{search_id, status}` |
 | `GET` | `/api/jobs/search/{search_id}` | Search session status + strategy + discovered/unique counts |
 | `GET` | `/api/jobs/recommendations/{search_id}?min_match=70` | Ranked recommendations (job + match breakdown + matched/partial/missing skills + explanation) |
@@ -348,15 +361,12 @@ highest-priority gap.
 
 ## 13. Future Phases
 
-- **Phase 3:** more job-source adapters (Adzuna, Jooble, etc. — all public
-  APIs), saved searches, search-result caching windows, per-job application
-  tracking, richer LLM explanations with streaming.
-- **Phase 4:** Gmail/calendar integration, interview scheduling, notifications.
-- **Phase 5:** Auth, multi-user production architecture, Postgres deployment,
-  Docker production images.
+- **Phase 3 (done):** Application Copilot — tailoring + cover letter + company research is live.
+- **Phase 4 (done):** Real-time provider aggregation (5 adapters + cache/verify), OpenRouter (`LLM_PROVIDER`), Phoenix local tracing.
+- **Phase 5 (basic done):** JWT auth (`/api/auth/*`, `User` + `user_id` scoping, frontend `localStorage` Bearer, `/login`/`/signup`) — see `backend/.env.example` `SECRET_KEY` and `frontend/lib/auth.ts`.
+- **Next:** Stronger auth (refresh, email verification, RBAC), Postgres + Alembic, object storage for uploads, notifications, calendar/Gmail integration.
 
-Out of scope for Phase 2 by design: automatic applications, LinkedIn/browser
-automation, login-walled scraping, CAPTCHA bypass, payments, notifications.
+Out of scope by design: automatic applications, LinkedIn/browser automation, login-walled scraping, CAPTCHA bypass, payments.
 
 ---
 
