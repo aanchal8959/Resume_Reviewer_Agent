@@ -232,7 +232,14 @@ class JobDiscoveryPipeline:
             "metadata": {},
             "errors": [],
         }
-        return self._graph.invoke(initial)
+        return self._graph.invoke(
+            initial,
+            config={
+                "metadata": {"search_id": search_id},
+                "run_name": "phase2-job-discovery",
+                "tags": ["phase2", "discovery"],
+            },
+        )
 
 
 def _as_utc(value: datetime | None) -> datetime | None:

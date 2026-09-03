@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 
+from app.auth.dependencies import get_current_user_optional
 from app.config import get_settings
 from app.database.database import get_database
 from app.database.repository import NotFoundError, SessionRepository
+from app.models.user import User
 from app.schemas.analysis import DocumentUploadResponse
 from app.services.pdf_parser import DocumentParseError, parse_document
 
@@ -41,6 +43,7 @@ def _validate_upload(file: UploadFile, field_label: str, max_bytes: int) -> byte
 def upload_documents(
     resume: UploadFile = File(...),
     job_description: UploadFile = File(...),
+    current_user: User | None = Depends(get_current_user_optional),
 ) -> DocumentUploadResponse:
     """Create an analysis session with a resume and a job description."""
     settings = get_settings()
@@ -62,7 +65,7 @@ def upload_documents(
     database = get_database()
     with database.session() as db:
         repo = SessionRepository(db)
-        session_row = repo.create_session()
+        session_row = repo.create_session(user_id=current_user.id if current_user else None)
         resume_doc = repo.add_document(
             session_row.id,
             "resume",

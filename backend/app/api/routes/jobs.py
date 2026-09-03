@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
+
+from app.auth.dependencies import get_current_user_optional
+from app.models.user import User
 
 from app.agents.candidate_agent import CandidateProfileAgent
 from app.agents.job_discovery_orchestrator import JobDiscoveryPipeline
@@ -72,7 +75,9 @@ def _load_candidate_for_session(resume_session_id: str) -> tuple[str, dict]:
 
 
 @router.post("/search")
-def search_jobs(request: JobSearchRequest) -> dict:
+def search_jobs(
+    request: JobSearchRequest, current_user: User | None = Depends(get_current_user_optional)
+) -> dict:
     """Discover + normalize + dedupe + match + rank jobs for a candidate."""
     _, candidate_profile = _load_candidate_for_session(request.session_id)
 
@@ -85,7 +90,9 @@ def search_jobs(request: JobSearchRequest) -> dict:
     with database.session() as db:
         repo = JobRepository(db)
         search_row = repo.create_search_session(
-            request.session_id, preferences.model_dump(mode="json")
+            request.session_id,
+            preferences.model_dump(mode="json"),
+            user_id=current_user.id if current_user else None,
         )
         search_id = search_row.id
         repo.set_search_status(search_id, "processing")
@@ -193,12 +200,16 @@ def _persist_pipeline_output(search_id: str, candidate_session_id: str,
 
 
 @router.get("/search/{search_id}")
-def get_search(search_id: str) -> dict:
+def get_search(
+    search_id: str, current_user: User | None = Depends(get_current_user_optional)
+) -> dict:
     database = get_database()
     with database.session() as db:
         repo = JobRepository(db)
         try:
             row = repo.get_search_session(search_id)
+            if row.user_id and (not current_user or row.user_id != current_user.id):
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
         except NotFoundError as exc:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
         return {
@@ -327,12 +338,15 @@ def get_recommendations(
     min_match: float | None = None,
     page: int = 1,
     limit: int = 20,
+    current_user: User | None = Depends(get_current_user_optional),
 ) -> dict:
     database = get_database()
     with database.session() as db:
         job_repo = JobRepository(db)
         try:
             search_row = job_repo.get_search_session(search_id)
+            if search_row.user_id and (not current_user or search_row.user_id != current_user.id):
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
         except NotFoundError as exc:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
 

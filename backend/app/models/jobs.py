@@ -20,6 +20,7 @@ class JobSearchSession(Base):
     __tablename__ = "job_search_sessions"
 
     id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_uuid)
+    user_id: Mapped[str | None] = mapped_column(String(32), ForeignKey("users.id"), nullable=True, index=True)
     source_session_id: Mapped[str] = mapped_column(String(32), ForeignKey("sessions.id"), index=True)
     status: Mapped[str] = mapped_column(String(32), default="pending", index=True)
     # pending | searching | processing | completed | failed

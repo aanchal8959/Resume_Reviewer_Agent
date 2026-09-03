@@ -11,6 +11,20 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 os.environ.setdefault("GEMINI_API_KEY", "test-key-for-suite")
+os.environ.setdefault("SECRET_KEY", "test-secret-key-do-not-use-in-prod")
+# Force hermetic provider for tests regardless of local backend/.env
+os.environ["LLM_PROVIDER"] = "gemini"
+# Disable tracing in tests — never emit hermetic runs.
+os.environ["LANGSMITH_TRACING"] = "false"
+os.environ["LANGCHAIN_TRACING_V2"] = "false"
+os.environ["PHOENIX_TRACING"] = "false"
+os.environ["PHOENIX_ENDPOINT"] = "http://localhost:6006/v1/traces"
+# Clear cached settings so tests read the hermetic env, not local .env
+try:
+    from app.config import get_settings as _get_settings  # noqa: E402
+    _get_settings.cache_clear()  # type: ignore[attr-defined]
+except Exception:
+    pass
 # Tests must be hermetic: never call real job providers or company research.
 from app.services.job_sources import manager as _manager_module  # noqa: E402
 from tests.fakes import FakeSourceAdapter, build_fake_jobs  # noqa: E402
@@ -26,6 +40,28 @@ def _hermetic_adapters(cls, settings):  # noqa: ANN001
 
 
 _manager_module.JobSourceManager._build_adapters = classmethod(_hermetic_adapters)
+
+
+@pytest.fixture(autouse=True)
+def _clear_settings_cache():
+    from app.config import get_settings
+
+    get_settings.cache_clear()
+    # Reset Phoenix tracer state so tests stay hermetic
+    try:
+        from app.services.phoenix_setup import reset_phoenix_state
+
+        reset_phoenix_state()
+    except Exception:
+        pass
+    yield
+    get_settings.cache_clear()
+    try:
+        from app.services.phoenix_setup import reset_phoenix_state
+
+        reset_phoenix_state()
+    except Exception:
+        pass
 
 
 @pytest.fixture(autouse=True)

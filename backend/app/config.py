@@ -19,10 +19,19 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    # --- LLM (Gemini) ---
+    # --- LLM provider selection (independent backends) ---
+    llm_provider: str = "gemini"  # gemini | openrouter
+    # Gemini (independent)
     gemini_api_key: str | None = None
     model_name: str = "gemini-3-flash-preview"
     llm_timeout_seconds: float = 60.0
+    # OpenRouter (independent — OpenAI-compatible)
+    openrouter_api_key: str | None = None
+    openrouter_model: str = "openai/gpt-4o-mini"
+    openrouter_base_url: str = "https://openrouter.ai/api/v1"
+    openrouter_site_url: str | None = None  # optional HTTP-Referer
+    openrouter_app_name: str | None = None  # optional X-Title
+    openrouter_timeout_seconds: float = 60.0
 
     # --- Database (SQLite default; Postgres-ready) ---
     database_url: str = "sqlite:///./job_switch_agent.db"
@@ -73,6 +82,26 @@ class Settings(BaseSettings):
             "education": 0.05,
         }
     )
+
+    # --- LangSmith tracing (optional) ---
+    # https://smith.langchain.com — set LANGSMITH_TRACING=true + LANGCHAIN_API_KEY to enable.
+    # LANGCHAIN_* aliases are supported for backwards compat.
+    langsmith_tracing: bool = False
+    langsmith_api_key: str | None = None
+    langchain_api_key: str | None = None  # alias for LANGCHAIN_API_KEY
+    langsmith_project: str = "job-switch-agent"
+    langsmith_endpoint: str = "https://api.smith.langchain.com"
+
+    # --- Arize Phoenix tracing (optional, local) ---
+    # https://docs.arize.com/phoenix — run locally: docker run -p 6006:6006 arizephoenix/phoenix
+    phoenix_tracing: bool = False
+    phoenix_endpoint: str = "http://localhost:6006/v1/traces"
+    phoenix_project: str = "job-switch-agent"
+
+    # --- Auth / JWT (basic) ---
+    secret_key: str = "change-me-in-prod-use-env-SECRET_KEY"
+    jwt_algorithm: str = "HS256"
+    access_token_expire_minutes: int = 30
 
     # --- Uploads / API ---
     max_upload_bytes: int = 10 * 1024 * 1024  # 10 MB

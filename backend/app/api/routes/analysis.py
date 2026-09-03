@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
+from app.auth.dependencies import get_current_user_optional
 from app.database.database import get_database
 from app.database.repository import NotFoundError, SessionRepository
+from app.models.user import User
 from app.schemas.analysis import StartAnalysisResponse
 from app.services.analysis_runner import AnalysisRunError, run_and_store_analysis
 
@@ -13,13 +15,19 @@ router = APIRouter(prefix="/api/analysis", tags=["analysis"])
 
 
 @router.post("/{session_id}/start", response_model=StartAnalysisResponse)
-def start_analysis(session_id: str) -> StartAnalysisResponse:
+def start_analysis(
+    session_id: str, current_user: User | None = Depends(get_current_user_optional)
+) -> StartAnalysisResponse:
     """Run the multi-agent analysis synchronously for an uploaded session."""
     database = get_database()
 
     with database.session() as db:
         repo = SessionRepository(db)
         try:
+            session_row = repo.get_session(session_id)
+            # Enforce ownership if session has an owner
+            if session_row.user_id and (not current_user or session_row.user_id != current_user.id):
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
             resume_doc = repo.get_document(session_id, "resume")
             jd_doc = repo.get_document(session_id, "job_description")
         except NotFoundError as exc:
@@ -46,13 +54,17 @@ def start_analysis(session_id: str) -> StartAnalysisResponse:
 
 
 @router.get("/{session_id}")
-def get_analysis(session_id: str) -> dict:
+def get_analysis(
+    session_id: str, current_user: User | None = Depends(get_current_user_optional)
+) -> dict:
     """Return the stored analysis result for a session."""
     database = get_database()
     with database.session() as db:
         repo = SessionRepository(db)
         try:
             session_row = repo.get_session(session_id)
+            if session_row.user_id and (not current_user or session_row.user_id != current_user.id):
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
         except NotFoundError as exc:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
         result = repo.get_result(session_id)

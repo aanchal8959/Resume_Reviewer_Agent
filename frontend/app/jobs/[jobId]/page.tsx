@@ -76,7 +76,7 @@ function JobDetailInner() {
 
   if (error && !detail) {
     return (
-      <main className="mx-auto flex min-h-screen max-w-xl flex-col items-center justify-center px-4 text-center">
+      <main className="mx-auto flex min-h-[60vh] max-w-xl flex-col items-center justify-center px-4 text-center">
         <h1 className="text-xl font-bold text-slate-900">Job unavailable</h1>
         <p className="mt-2 text-sm text-slate-500">{error}</p>
         <Link
@@ -91,7 +91,7 @@ function JobDetailInner() {
 
   if (!detail) {
     return (
-      <main className="flex min-h-screen items-center justify-center">
+      <main className="flex min-h-[60vh] items-center justify-center">
         <p className="animate-pulse text-sm font-medium text-slate-500">Loading job…</p>
       </main>
     );
@@ -321,7 +321,7 @@ export default function JobDetailPage() {
   return (
     <Suspense
       fallback={
-        <main className="flex min-h-screen items-center justify-center">
+        <main className="flex min-h-[60vh] items-center justify-center">
           <p className="animate-pulse text-sm font-medium text-slate-500">Loading…</p>
         </main>
       }

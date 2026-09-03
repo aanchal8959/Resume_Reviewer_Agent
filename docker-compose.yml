@@ -10,11 +10,30 @@ services:
     ports:
       - "8000:8000"
     environment:
-      LLM_PROVIDER: ${LLM_PROVIDER:-mock}
+      LLM_PROVIDER: ${LLM_PROVIDER:-gemini}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-      MODEL_NAME: ${MODEL_NAME:-gemini-2.0-flash}
+      MODEL_NAME: ${MODEL_NAME:-gemini-3-flash-preview}
+      LLM_TIMEOUT_SECONDS: ${LLM_TIMEOUT_SECONDS:-60}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_MODEL: ${OPENROUTER_MODEL:-openai/gpt-4o-mini}
+      OPENROUTER_BASE_URL: ${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1}
+      OPENROUTER_SITE_URL: ${OPENROUTER_SITE_URL:-}
+      OPENROUTER_APP_NAME: ${OPENROUTER_APP_NAME:-}
+      OPENROUTER_TIMEOUT_SECONDS: ${OPENROUTER_TIMEOUT_SECONDS:-60}
       DATABASE_URL: sqlite:///./job_switch_agent.db
       CORS_ORIGINS: http://localhost:3000
+      LANGSMITH_TRACING: ${LANGSMITH_TRACING:-false}
+      LANGCHAIN_TRACING_V2: ${LANGCHAIN_TRACING_V2:-${LANGSMITH_TRACING:-false}}
+      LANGCHAIN_API_KEY: ${LANGCHAIN_API_KEY:-}
+      LANGCHAIN_PROJECT: ${LANGCHAIN_PROJECT:-${LANGSMITH_PROJECT:-job-switch-agent}}
+      LANGSMITH_PROJECT: ${LANGSMITH_PROJECT:-job-switch-agent}
+      LANGSMITH_ENDPOINT: ${LANGSMITH_ENDPOINT:-https://api.smith.langchain.com}
+      PHOENIX_TRACING: ${PHOENIX_TRACING:-false}
+      PHOENIX_ENDPOINT: ${PHOENIX_ENDPOINT:-http://phoenix:6006/v1/traces}
+      PHOENIX_PROJECT: ${PHOENIX_PROJECT:-job-switch-agent}
+      SECRET_KEY: ${SECRET_KEY:-change-me-in-prod-use-env-SECRET_KEY}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
     volumes:
       - backend_data:/app/data
 
@@ -40,6 +59,15 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     profiles: ["with-postgres"]
+
+  phoenix:
+    image: arizephoenix/phoenix:latest
+    ports:
+      - "6006:6006"
+      - "4317:4317"
+    environment:
+      PHOENIX_PROJECT_NAME: job-switch-agent
+    profiles: ["with-phoenix"]
 
 volumes:
   backend_data:

@@ -8,9 +8,11 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import analysis, applications, documents, jobs
+from app.api.routes import analysis, applications, auth, documents, jobs
 from app.config import get_settings
 from app.database.database import get_database
+from app.services.langsmith_setup import configure_langsmith
+from app.services.phoenix_setup import configure_phoenix
 
 
 def create_app() -> FastAPI:
@@ -18,6 +20,8 @@ def create_app() -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+        configure_langsmith(settings)
+        configure_phoenix(settings)
         get_database()
         yield
 
@@ -38,6 +42,7 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    application.include_router(auth.router)
     application.include_router(documents.router)
     application.include_router(analysis.router)
     application.include_router(jobs.router)
@@ -45,10 +50,15 @@ def create_app() -> FastAPI:
 
     @application.get("/health", tags=["health"])
     def health() -> dict:
+        provider = str(getattr(settings, "llm_provider", "gemini") or "gemini").lower()
+        if provider == "openrouter":
+            model = settings.openrouter_model
+        else:
+            model = settings.model_name
         return {
             "status": "ok",
-            "llm_provider": "gemini",
-            "model": settings.model_name,
+            "llm_provider": provider,
+            "model": model,
         }
 
     return application

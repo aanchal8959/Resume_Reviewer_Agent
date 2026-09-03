@@ -2,14 +2,16 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, Query, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 
 from app.agents.application_copilot_orchestrator import ApplicationCopilotPipeline
+from app.auth.dependencies import get_current_user_optional
 from app.config import get_settings
 from app.database.application_repository import (
     ApplicationNotFoundError,
     TerminalStateError,
 )
+from app.models.user import User
 from app.schemas.applications import (
     ApplicationAnalytics,
     CreateApplicationRequest,
@@ -35,10 +37,12 @@ def _not_found(exc: Exception) -> HTTPException:
 
 
 @router.post("", status_code=status.HTTP_201_CREATED)
-def create_application(body: CreateApplicationRequest) -> dict:
+def create_application(
+    body: CreateApplicationRequest, current_user: User | None = Depends(get_current_user_optional)
+) -> dict:
     try:
         application_id = _service().create_application(
-            body.job_id, body.resume_session_id
+            body.job_id, body.resume_session_id, user_id=current_user.id if current_user else None
         )
     except ApplicationNotFoundError as exc:
         raise _not_found(exc) from exc

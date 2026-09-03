@@ -190,5 +190,12 @@ class Orchestrator:
             "roadmap": None,
             "errors": [],
         }
-        final: JobSwitchState = self._graph.invoke(initial)
+        final: JobSwitchState = self._graph.invoke(
+            initial,
+            config={
+                "metadata": {"session_id": session_id},
+                "run_name": "phase1-analysis",
+                "tags": ["phase1", "analysis"],
+            },
+        )
         return final

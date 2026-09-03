@@ -39,16 +39,17 @@ export default function HomePage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col items-center justify-center px-4 py-12">
+    <main className="flex min-h-0 flex-1 items-center justify-center overflow-hidden px-4 py-6 sm:py-8">
+      <div className="flex w-full max-w-3xl flex-col">
       <div className="mb-10 text-center">
         <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-indigo-50 px-4 py-1.5 text-xs font-semibold text-indigo-700">
           Multi-agent AI pipeline · LangGraph powered
         </div>
         <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
-          Job Switch Agent
+          Resume Reviewer  Agent
         </h1>
         <p className="mt-3 text-lg text-slate-500">
-          Your AI career team for a smarter job switch.
+          Your AI career team for a smarter Resume Reviewer.
         </p>
       </div>
 
@@ -92,6 +93,7 @@ export default function HomePage() {
             {error}
           </p>
         )}
+      </div>
       </div>
     </main>
   );

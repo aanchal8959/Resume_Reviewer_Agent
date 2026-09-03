@@ -68,7 +68,7 @@ export default function ApplicationCopilotPage() {
 
   if (error && !detail) {
     return (
-      <main className="mx-auto flex min-h-screen max-w-xl flex-col items-center justify-center px-4 text-center">
+      <main className="mx-auto flex min-h-[60vh] max-w-xl flex-col items-center justify-center px-4 text-center">
         <h1 className="text-xl font-bold text-slate-900">Application unavailable</h1>
         <p className="mt-2 text-sm text-slate-500">{error}</p>
         <Link href="/applications" className="mt-6 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white">
@@ -80,7 +80,7 @@ export default function ApplicationCopilotPage() {
 
   if (!detail) {
     return (
-      <main className="flex min-h-screen items-center justify-center">
+      <main className="flex min-h-[60vh] items-center justify-center">
         <p className="animate-pulse text-sm font-medium text-slate-500">Loading copilot…</p>
       </main>
     );
